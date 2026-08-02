@@ -4,10 +4,12 @@
 
 A production-style logistics ingestion and analytics warehouse pipeline designed to manage the DataCo Supply Chain dataset (~180,000 shipment records). This platform demonstrates robust, senior-level data engineering practices by making **data quality and pipeline observability the core product**, rather than an afterthought.
 
-## Live Demo
+## Live Demo & Observability UI
 
 The pipeline observability dashboard is deployed and can be viewed live:
 * **Streamlit Live Dashboard**: [https://shipment-observability-idn2yffuctyed95bhvrvd9.streamlit.app/](https://shipment-observability-idn2yffuctyed95bhvrvd9.streamlit.app/)
+
+![Streamlit Observability Dashboard Preview](docs/images/dashboard_preview.svg)
 
 ## Architecture
 
