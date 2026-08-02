@@ -89,6 +89,20 @@ Most data platform portfolios implement simple constraints (like "not null"). Th
 
 ---
 
+## Design Decisions & Architectural Tradeoffs
+
+### Why MySQL for a Portfolio Warehouse?
+* **Local & Zero-Cost Reproducibility**: Using MySQL 8.0 allows any engineer or hiring manager to clone the repository and execute `python -m orchestration.run_pipeline` locally without registering for cloud credentials or incurring warehouse costs.
+* **dbt Adapter Engineering**: Demonstrates adapter-specific optimization using `dbt-mysql` (e.g., handling MySQL-specific SQL syntax, explicit casting to prevent UNSIGNED arithmetic underflows, and building cross-join date spines to bypass `cte_max_recursion_depth` limits).
+
+### Production Scale Alternatives
+In an enterprise environment processing multi-gigabyte or streaming logistics telemetry:
+* **Analytical Storage Layer**: Migrate warehouse storage to Snowflake, BigQuery, or Databricks for massively parallel processing (MPP) and column-store efficiency.
+* **Object Lakehouse Landing**: Store incoming raw files in Amazon S3 or Google Cloud Storage using Apache Iceberg or Delta Lake formats to enable ACID transactions and time-travel audits prior to warehouse ingestion.
+* **Managed Orchestration**: Deploy Airflow on Kubernetes (via AWS MWAA, Astronomer, or Cloud Composer) with infrastructure managed through Terraform.
+
+---
+
 ## Tech Stack & Structure
 
 * **Warehouse**: MySQL 8.0
