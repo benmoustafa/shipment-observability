@@ -1,0 +1,81 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: "Ben.2003!"
+          MYSQL_DATABASE: shipment_observability
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dbt-core dbt-mysql
+
+      - name: Run Pytest suite
+        run: |
+          pytest -v
+
+      - name: Setup dbt profile for CI
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          shipment_dbt:
+            target: dev
+            outputs:
+              dev:
+                type: mysql
+                server: 127.0.0.1
+                port: 3306
+                schema: shipment_observability
+                username: root
+                password: "Ben.2003!"
+                ssl_disabled: true
+          EOF
+
+      - name: Seed sample MySQL warehouse data
+        env:
+          DB_HOST: "127.0.0.1"
+          DB_PORT: "3306"
+          DB_USER: "root"
+          DB_PASSWORD: "Ben.2003!"
+          DB_NAME: "shipment_observability"
+        run: |
+          python tests/ci_seed.py
+
+      - name: Run dbt models
+        run: |
+          python -m dbt.cli.main run --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --exclude my_first_dbt_model my_second_dbt_model
+
+      - name: Run dbt quality tests
+        run: |
+          python -m dbt.cli.main test --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --exclude my_first_dbt_model my_second_dbt_model

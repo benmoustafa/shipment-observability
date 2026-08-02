@@ -1,5 +1,7 @@
 # Shipment Data Quality & Observability Platform
 
+![CI Pipeline](https://github.com/benmoustafa/shipment-observability/actions/workflows/ci.yml/badge.svg)
+
 A production-style logistics ingestion and analytics warehouse pipeline designed to manage the DataCo Supply Chain dataset (~180,000 shipment records). This platform demonstrates robust, senior-level data engineering practices by making **data quality and pipeline observability the core product**, rather than an afterthought.
 
 ## Live Demo
