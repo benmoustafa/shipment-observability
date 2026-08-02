@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Data files
+data/raw/DataCoSupplyChainDataset.csv
+data/raw/tokenized_access_logs.csv
+data/raw/*.csv
+*.csv
+
+# dbt logs and targets
+dbt/shipment_dbt/target/
+dbt/shipment_dbt/dbt_packages/
+dbt/shipment_dbt/logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+.pytest_cache/

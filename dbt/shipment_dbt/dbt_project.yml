@@ -1,0 +1,33 @@
+
+name: 'shipment_dbt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'shipment_dbt'
+
+# Path to model files
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  shipment_dbt:
+    staging:
+      +materialized: view       # Staging models are cheap views — no extra storage
+      +schema: staging          # Written to shipment_observability_staging schema
+
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+
+    marts:
+      +materialized: table      # Marts are tables — queried by dashboards, must be fast
+      +schema: marts

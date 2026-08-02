@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: fact_shipments
+    description: >
+      Fact table at order-line grain (one row per order_id + order_item_id).
+      Grain choice: order-line rather than order because each line item has
+      different products, quantities, and profit contributions. Aggregating to
+      order grain before the fact table would destroy per-product analysis.
+    columns:
+      - name: order_id
+        description: "Order identifier (FK to source)"
+        tests:
+          - not_null
+      - name: order_item_id
+        description: "Order item identifier"
+        tests:
+          - not_null
+      - name: customer_id
+        description: "FK to dim_customers"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: product_id
+        description: "FK to dim_products"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+      - name: sales
+        description: "Line item sales revenue"
+        tests:
+          - not_null
+      - name: is_late
+        description: "1 if actual shipping days exceeded scheduled, 0 otherwise"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: delivery_status
+        description: "Delivery status string"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Advance shipping', 'Late delivery', 'Shipping on time', 'Shipping canceled']
+
+  - name: dim_customers
+    description: "Customer dimension — one row per customer_id (Type 1 SCD, latest attributes)."
+    columns:
+      - name: customer_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: customer_email
+        description: "Customer email"
+        tests:
+          - not_null
+
+  - name: dim_products
+    description: "Product dimension — one row per product_id (Type 1 SCD, latest attributes)."
+    columns:
+      - name: product_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Product name"
+        tests:
+          - not_null
+
+  - name: dim_dates
+    description: "Date dimension covering 2015-01-01 to 2018-12-31 — the full DataCo dataset range."
+    columns:
+      - name: date_id
+        description: "Primary key — the calendar date"
+        tests:
+          - unique
+          - not_null

@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw tables loaded by the Python ingestion pipeline (loader.py)"
+    database: shipment_observability
+    schema: shipment_observability
+    tables:
+      - name: raw_shipments
+        description: "Raw DataCo Smart Supply Chain data — 180,519 rows, 53 columns. Loaded by ingestion/loader.py."
+        columns:
+          - name: Order Id
+            description: "Unique order identifier"
+          - name: "order date (DateOrders)"
+            description: "Date the order was placed"
+          - name: "shipping date (DateOrders)"
+            description: "Date the order shipped"
+          - name: Delivery Status
+            description: "Delivery status string — expected values: Advance shipping, Late delivery, Shipping on time, Shipping canceled"
+
+models:
+  - name: stg_shipments
+    description: >
+      Staging layer for raw shipment data. Renames all columns to snake_case,
+      casts types explicitly, and derives is_late from date arithmetic.
+      No joins, no business logic — just cleaning and renaming.
+    columns:
+      - name: order_id
+        description: "Unique order identifier"
+        tests:
+          - not_null
+      - name: order_item_id
+        description: "Unique order item identifier"
+        tests:
+          - not_null
+      - name: ship_date
+        description: "Date the order was shipped"
+        tests:
+          - not_null
+      - name: order_date
+        description: "Date the order was placed"
+        tests:
+          - not_null
+      - name: delivery_status
+        description: "Delivery status string"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Advance shipping', 'Late delivery', 'Shipping on time', 'Shipping canceled']
+      - name: is_late
+        description: "1 if actual shipping days exceeded scheduled days, 0 otherwise"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: customer_id
+        description: "Customer identifier"
+        tests:
+          - not_null
+      - name: product_id
+        description: "Product identifier"
+        tests:
+          - not_null

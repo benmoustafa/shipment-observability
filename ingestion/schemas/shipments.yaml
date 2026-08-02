@@ -1,0 +1,295 @@
+# Schema contract for the DataCo Smart Supply Chain dataset.
+#
+# Generated from profiling the actual Kaggle dataset (180,519 rows, 53 columns).
+# Column names match the RAW CSV headers exactly — mixed case, spaces, parens.
+# The staging layer (Phase 2 / dbt) will normalize these to snake_case.
+#
+# Nullable decisions are based on the actual data profile:
+#   - Product Description: 100% null in the real data → nullable
+#   - Order Zipcode: 86% null → nullable
+#   - Customer Zipcode: 3 nulls → nullable (zip codes can be missing)
+#   - Customer Lname: 8 nulls → nullable (edge case, but real)
+#
+# To add a new source table, create a new YAML file in this directory —
+# no code changes required.
+
+source_name: "shipments"
+description: "DataCo Smart Supply Chain — 180k shipment/order records from Kaggle"
+
+# Fraction of non-null values that must successfully parse as the declared type.
+# 0.95 means up to 5% genuine typos are tolerated; real corruption triggers
+# a BREAKING type-mismatch.
+type_match_threshold: 0.95
+
+columns:
+  # === Order-level fields ===
+  - name: "Type"
+    type: "string"
+    nullable: false
+    description: "Transaction type (e.g. DEBIT, TRANSFER, PAYMENT, CASH)"
+
+  - name: "Order Id"
+    type: "integer"
+    nullable: false
+    description: "Unique order identifier"
+
+  - name: "order date (DateOrders)"
+    type: "date"
+    nullable: false
+    description: "Date the order was placed"
+
+  - name: "Order Status"
+    type: "string"
+    nullable: false
+    description: "Order status — e.g. COMPLETE, PENDING, CLOSED, etc."
+
+  - name: "Order City"
+    type: "string"
+    nullable: false
+    description: "City where the order was placed"
+
+  - name: "Order Country"
+    type: "string"
+    nullable: false
+    description: "Country where the order was placed"
+
+  - name: "Order Region"
+    type: "string"
+    nullable: false
+    description: "Geographic region of the order"
+
+  - name: "Order State"
+    type: "string"
+    nullable: false
+    description: "State/province of the order"
+
+  - name: "Order Zipcode"
+    type: "numeric"
+    nullable: true     # 86.2% null in real data
+    description: "Zipcode of the order — heavily null in this dataset"
+
+  - name: "Order Customer Id"
+    type: "integer"
+    nullable: false
+    description: "FK linking order to customer"
+
+  # === Order Item fields ===
+  - name: "Order Item Id"
+    type: "integer"
+    nullable: false
+    description: "Unique order item/line identifier"
+
+  - name: "Order Item Cardprod Id"
+    type: "integer"
+    nullable: false
+    description: "Card product ID for the order item"
+
+  - name: "Order Item Discount"
+    type: "numeric"
+    nullable: false
+    description: "Discount amount applied to this item"
+
+  - name: "Order Item Discount Rate"
+    type: "numeric"
+    nullable: false
+    description: "Discount rate as a fraction"
+
+  - name: "Order Item Product Price"
+    type: "numeric"
+    nullable: false
+    description: "Unit price of the product"
+
+  - name: "Order Item Profit Ratio"
+    type: "numeric"
+    nullable: false
+    description: "Profit ratio for this order line"
+
+  - name: "Order Item Quantity"
+    type: "integer"
+    nullable: false
+    description: "Quantity ordered"
+
+  - name: "Sales"
+    type: "numeric"
+    nullable: false
+    description: "Sales amount for this item"
+
+  - name: "Order Item Total"
+    type: "numeric"
+    nullable: false
+    description: "Total value of the order item"
+
+  - name: "Order Profit Per Order"
+    type: "numeric"
+    nullable: false
+    description: "Profit per order — can be negative for losses"
+
+  - name: "Benefit per order"
+    type: "numeric"
+    nullable: false
+    description: "Benefit/margin per order"
+
+  - name: "Sales per customer"
+    type: "numeric"
+    nullable: false
+    description: "Cumulative sales per customer"
+
+  # === Shipping / Delivery fields ===
+  - name: "shipping date (DateOrders)"
+    type: "date"
+    nullable: false
+    description: "Date the order was shipped"
+
+  - name: "Shipping Mode"
+    type: "string"
+    nullable: false
+    description: "Shipping method — Standard Class, Second Class, First Class, Same Day"
+
+  - name: "Days for shipping (real)"
+    type: "integer"
+    nullable: false
+    description: "Actual number of days for shipping"
+
+  - name: "Days for shipment (scheduled)"
+    type: "integer"
+    nullable: false
+    description: "Scheduled number of days for shipment"
+
+  - name: "Delivery Status"
+    type: "string"
+    nullable: false
+    description: "Delivery status — Advance shipping, Late delivery, Shipping on time, Shipping canceled"
+
+  - name: "Late_delivery_risk"
+    type: "integer"
+    nullable: false
+    description: "Binary flag — 1 if late delivery risk, 0 otherwise"
+
+  # === Customer fields ===
+  - name: "Customer Id"
+    type: "integer"
+    nullable: false
+    description: "Unique customer identifier"
+
+  - name: "Customer Fname"
+    type: "string"
+    nullable: false
+    description: "Customer first name"
+
+  - name: "Customer Lname"
+    type: "string"
+    nullable: true     # 8 nulls in real data
+    description: "Customer last name — occasionally null"
+
+  - name: "Customer Email"
+    type: "string"
+    nullable: false
+    description: "Customer email address"
+
+  - name: "Customer Password"
+    type: "string"
+    nullable: false
+    description: "Hashed customer password"
+
+  - name: "Customer Segment"
+    type: "string"
+    nullable: false
+    description: "Market segment — Consumer, Corporate, Home Office"
+
+  - name: "Customer City"
+    type: "string"
+    nullable: false
+    description: "Customer city"
+
+  - name: "Customer State"
+    type: "string"
+    nullable: false
+    description: "Customer state/province"
+
+  - name: "Customer Country"
+    type: "string"
+    nullable: false
+    description: "Customer country"
+
+  - name: "Customer Street"
+    type: "string"
+    nullable: false
+    description: "Customer street address"
+
+  - name: "Customer Zipcode"
+    type: "numeric"
+    nullable: true     # 3 nulls in real data
+    description: "Customer zipcode — occasionally null"
+
+  # === Product fields ===
+  - name: "Product Card Id"
+    type: "integer"
+    nullable: false
+    description: "Product card identifier"
+
+  - name: "Product Category Id"
+    type: "integer"
+    nullable: false
+    description: "FK to product category"
+
+  - name: "Product Description"
+    type: "string"
+    nullable: true     # 100% null in real data — column exists but is empty
+    description: "Product description — entirely null in this dataset"
+
+  - name: "Product Image"
+    type: "string"
+    nullable: false
+    description: "URL or path to product image"
+
+  - name: "Product Name"
+    type: "string"
+    nullable: false
+    description: "Product name"
+
+  - name: "Product Price"
+    type: "numeric"
+    nullable: false
+    description: "Product price in USD"
+
+  - name: "Product Status"
+    type: "integer"
+    nullable: false
+    description: "Product availability status flag"
+
+  # === Category / Department fields ===
+  - name: "Category Id"
+    type: "integer"
+    nullable: false
+    description: "Product category identifier"
+
+  - name: "Category Name"
+    type: "string"
+    nullable: false
+    description: "Product category name"
+
+  - name: "Department Id"
+    type: "integer"
+    nullable: false
+    description: "Department identifier"
+
+  - name: "Department Name"
+    type: "string"
+    nullable: false
+    description: "Department name"
+
+  # === Geography fields ===
+  - name: "Latitude"
+    type: "numeric"
+    nullable: false
+    description: "Customer latitude coordinate"
+
+  - name: "Longitude"
+    type: "numeric"
+    nullable: false
+    description: "Customer longitude coordinate"
+
+  - name: "Market"
+    type: "string"
+    nullable: false
+    description: "Market region — Africa, Europe, LATAM, Pacific Asia, USCA"
