@@ -141,3 +141,20 @@ python -m orchestration.run_pipeline
 streamlit run dashboard/app.py
 ```
 
+---
+
+## What I Would Do With More Time
+
+This project deliberately scopes to a local, reproducible environment to demonstrate the observability patterns clearly. The following are concrete, production-grade extensions that are genuinely out of scope for this stage — not hand-waving about hypothetical features:
+
+### 1. Cloud Warehouse Migration (Snowflake or BigQuery)
+The MySQL adapter imposes real constraints: no columnar storage, no clustering keys, and no native time-travel for incremental models. Migrating the dbt project to Snowflake or BigQuery would unlock `CLUSTER BY` mart optimization, incremental `MERGE` strategies on `fact_shipments`, and native query result caching — all relevant for a dataset growing to tens of millions of rows. The dbt model SQL is already mostly ANSI-compatible; the adapter swap would be the primary effort.
+
+### 2. Streaming Ingestion via Kafka or Pub/Sub
+The current pipeline is batch-oriented: ingest a full CSV snapshot, delete-and-reinsert, run dbt. A production logistics platform processes shipment events in near-real-time. The right extension is to replace the CSV source with a Kafka topic (or GCP Pub/Sub), consume events with a Python consumer that passes each record through the schema validator before writing to a staging table, and trigger dbt incremental model refreshes on a 5-minute schedule via Airflow sensors. This fundamentally changes the latency guarantee from "daily" to "minutes."
+
+### 3. ML-Based Anomaly Detection
+The current statistical layer uses z-scores over a rolling 30-run window, which is effective and interpretable, but has a cold-start problem (it takes 30 runs to stabilize) and assumes normally distributed metrics. A genuine upgrade is to train an `IsolationForest` or `Prophet` model on historical pipeline metric time-series and replace the z-score threshold with a model prediction interval. This eliminates manual threshold tuning and adapts automatically to seasonality — for example, shipping volumes spike in November/December and a static z-score would produce false alerts during that period.
+
+### 4. Data Contracts via a Schema Registry
+The YAML-based schema contract in `ingestion/schemas/shipments.yaml` is a solid start, but it has no enforcement upstream — the source system can change the schema without triggering a contract violation until the next pipeline run. The production pattern is to register the schema in a centralized Schema Registry (Apache Confluent or AWS Glue Schema Registry), add a version field, and configure the upstream producer to validate against the registry before emitting records. This shifts the detection point from "post-receipt" to "at emission," which eliminates an entire class of silent data debt.
