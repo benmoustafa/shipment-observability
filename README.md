@@ -7,7 +7,7 @@ A production-style logistics ingestion and analytics warehouse pipeline designed
 ## Live Demo & Observability UI
 
 The pipeline observability dashboard is deployed and can be viewed live:
-* **Streamlit Live Dashboard**: [https://shipment-observability-idn2yffuctyed95bhvrvd9.streamlit.app/](https://shipment-observability-idn2yffuctyed95bhvrvd9.streamlit.app/)
+* **Streamlit Live Dashboard**: [https://shipment-observability-9sxafbcwhymfyoagvnfkfq.streamlit.app/](https://shipment-observability-9sxafbcwhymfyoagvnfkfq.streamlit.app/)
 
 ![Streamlit Observability Dashboard Preview](docs/images/dashboard_preview.svg)
 
