@@ -12,13 +12,19 @@ from sqlalchemy import create_engine
 
 def seed_ci_database():
     db_user = os.environ.get("DB_USER", "root")
-    db_pass = os.environ.get("DB_PASSWORD", "Ben.2003!")
+    db_pass = os.environ.get("DB_PASSWORD", "testpassword")
     db_host = os.environ.get("DB_HOST", "127.0.0.1")
     db_port = os.environ.get("DB_PORT", "3306")
     db_name = os.environ.get("DB_NAME", "shipment_observability")
 
     uri = f"mysql+mysqlconnector://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
     engine = create_engine(uri)
+
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        conn.execute(text("CREATE DATABASE IF NOT EXISTS shipment_observability_staging;"))
+        conn.execute(text("CREATE DATABASE IF NOT EXISTS shipment_observability_intermediate;"))
+        conn.execute(text("CREATE DATABASE IF NOT EXISTS shipment_observability_marts;"))
 
     n_rows = 50
     df = pd.DataFrame({
