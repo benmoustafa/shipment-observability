@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%" style="background-color: #0d1117; font-family: 'Inter', system-ui, sans-serif;">
+  <defs>
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#161b22" />
+      <stop offset="100%" stop-color="#21262d" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="32" text-anchor="middle" fill="#f0f6fc" font-size="18" font-weight="700" letter-spacing="0.5">SHIPMENT DATA OBSERVABILITY PLATFORM ARCHITECTURE</text>
+
+  <!-- Subgraphs / Sections -->
+  <!-- 1. Upstream & Ingestion -->
+  <rect x="30" y="65" width="260" height="380" rx="10" fill="url(#boxGrad)" stroke="#30363d" stroke-width="1.5" />
+  <text x="160" y="90" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="600">1. INGESTION &amp; DRIFT CONTROL</text>
+  
+  <rect x="50" y="110" width="220" height="45" rx="6" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5" />
+  <text x="160" y="137" text-anchor="middle" fill="#c9d1d9" font-size="12">DataCo Supply Chain CSV (~180k)</text>
+
+  <path d="M 160 155 L 160 185" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="50" y="190" width="220" height="50" rx="6" fill="#0d1117" stroke="#d29922" stroke-width="1.5" />
+  <text x="160" y="212" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Schema Validator Engine</text>
+  <text x="160" y="228" text-anchor="middle" fill="#8b949e" font-size="10">YAML Contract Verification</text>
+
+  <path d="M 160 240 L 160 270" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="50" y="275" width="220" height="50" rx="6" fill="#0d1117" stroke="#238636" stroke-width="1.5" />
+  <text x="160" y="297" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">MySQL Warehouse Loader</text>
+  <text x="160" y="313" text-anchor="middle" fill="#8b949e" font-size="10">Scoped Delete + Re-Insert</text>
+
+  <rect x="50" y="350" width="220" height="70" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+  <text x="160" y="372" text-anchor="middle" fill="#f85149" font-size="11" font-weight="600">Breaking: Halt &amp; Log</text>
+  <text x="160" y="392" text-anchor="middle" fill="#d29922" font-size="11" font-weight="600">Warning: Log &amp; Proceed</text>
+  <text x="160" y="408" text-anchor="middle" fill="#8b949e" font-size="10">schema_drift_log Table</text>
+
+  <!-- 2. DBT Warehouse -->
+  <rect x="320" y="65" width="260" height="380" rx="10" fill="url(#boxGrad)" stroke="#30363d" stroke-width="1.5" />
+  <text x="450" y="90" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600">2. TRANSFORMATION &amp; MARTS</text>
+
+  <rect x="340" y="110" width="220" height="45" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1.5" />
+  <text x="450" y="137" text-anchor="middle" fill="#c9d1d9" font-size="12">Staging (stg_shipments view)</text>
+
+  <path d="M 450 155 L 450 185" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="340" y="190" width="220" height="45" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1.5" />
+  <text x="450" y="217" text-anchor="middle" fill="#c9d1d9" font-size="12">Intermediate (int_order_items)</text>
+
+  <path d="M 450 235 L 450 265" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <g transform="translate(340, 270)">
+    <rect x="0" y="0" width="220" height="150" rx="6" fill="#0d1117" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="110" y="25" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="600">Star Schema Marts</text>
+    <rect x="15" y="40" width="190" height="25" rx="4" fill="#161b22" stroke="#30363d" />
+    <text x="110" y="57" text-anchor="middle" fill="#f0f6fc" font-size="11">fact_shipments (180,519 rows)</text>
+    <rect x="15" y="72" width="190" height="22" rx="4" fill="#161b22" stroke="#30363d" />
+    <text x="110" y="87" text-anchor="middle" fill="#8b949e" font-size="10">dim_customers (20,652 rows)</text>
+    <rect x="15" y="98" width="190" height="22" rx="4" fill="#161b22" stroke="#30363d" />
+    <text x="110" y="113" text-anchor="middle" fill="#8b949e" font-size="10">dim_products (118 rows)</text>
+    <rect x="15" y="124" width="190" height="20" rx="4" fill="#161b22" stroke="#30363d" />
+    <text x="110" y="138" text-anchor="middle" fill="#8b949e" font-size="10">dim_dates (1,461 rows)</text>
+  </g>
+
+  <!-- 3. Observability & Dashboard -->
+  <rect x="610" y="65" width="260" height="380" rx="10" fill="url(#boxGrad)" stroke="#30363d" stroke-width="1.5" />
+  <text x="740" y="90" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">3. OBSERVABILITY &amp; ACTIONS</text>
+
+  <rect x="630" y="110" width="220" height="45" rx="6" fill="#0d1117" stroke="#a78bfa" stroke-width="1.5" />
+  <text x="740" y="130" text-anchor="middle" fill="#f0f6fc" font-size="11" font-weight="600">Static dbt Quality Tests</text>
+  <text x="740" y="145" text-anchor="middle" fill="#8b949e" font-size="10">dbt_test_results Time-Series</text>
+
+  <path d="M 740 155 L 740 185" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="630" y="190" width="220" height="45" rx="6" fill="#0d1117" stroke="#a78bfa" stroke-width="1.5" />
+  <text x="740" y="210" text-anchor="middle" fill="#f0f6fc" font-size="11" font-weight="600">z-Score Statistical Checks</text>
+  <text x="740" y="225" text-anchor="middle" fill="#8b949e" font-size="10">anomaly_check_results</text>
+
+  <path d="M 740 235 L 740 265" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="630" y="270" width="220" height="50" rx="6" fill="#0d1117" stroke="#f43f5e" stroke-width="1.5" />
+  <text x="740" y="290" text-anchor="middle" fill="#f0f6fc" font-size="11" font-weight="600">Severity Router &amp; Slack Alerting</text>
+  <text x="740" y="306" text-anchor="middle" fill="#8b949e" font-size="10">Critical = Halt | Warning = Continue</text>
+
+  <path d="M 740 320 L 740 350" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="630" y="355" width="220" height="65" rx="6" fill="#0d1117" stroke="#38bdf8" stroke-width="1.5" />
+  <text x="740" y="380" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="700">Streamlit Live Dashboard</text>
+  <text x="740" y="400" text-anchor="middle" fill="#38bdf8" font-size="10">Observability &amp; Business Analytics</text>
+
+</svg>

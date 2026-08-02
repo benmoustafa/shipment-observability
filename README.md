@@ -13,39 +13,41 @@ The pipeline observability dashboard is deployed and can be viewed live:
 
 ```mermaid
 flowchart TD
-    subgraph Upstream Data
-        A[DataCo CSV Dataset]
+    subgraph "Upstream Data"
+        A["DataCo CSV Dataset"]
     end
 
-    subgraph Ingestion Layer
-        B[Schema Validator] -->|Drift?| C{Breaking?}
-        C -->|Yes| D[Halt + Log Drift]
-        C -->|No| E[Warning Log + Load]
-        E -->|DELETE + INSERT| F[(MySQL raw_shipments)]
+    subgraph "Ingestion Layer"
+        B["Schema Validator"] -->|Drift?| C{"Breaking?"}
+        C -->|Yes| D["Halt + Log Drift"]
+        C -->|No| E["Warning Log + Load"]
+        E -->|DELETE + INSERT| F[("MySQL raw_shipments")]
     end
 
-    subgraph DBT Transformation
-        F --> G[stg_shipments]
-        G --> H[int_order_items]
-        H --> I[(fact_shipments)]
-        G --> J[(dim_customers)]
-        G --> K[(dim_products)]
-        G --> L[(dim_dates)]
+    subgraph "DBT Transformation"
+        F --> G["stg_shipments"]
+        G --> H["int_order_items"]
+        H --> I[("fact_shipments")]
+        G --> J[("dim_customers")]
+        G --> K[("dim_products")]
+        G --> L[("dim_dates")]
     end
 
-    subgraph Observability
-        M[DBT Tests] -->|Parse run_results.json| N[(dbt_test_results)]
-        O[z-score Anomaly Checks] --> N2[(anomaly_check_results)]
-        N --> P[Streamlit Dashboard]
+    subgraph "Observability Layer"
+        M["DBT Tests"] -->|Parse run_results.json| N[("dbt_test_results")]
+        O["z-score Anomaly Checks"] --> N2[("anomaly_check_results")]
+        N --> P["Streamlit Dashboard"]
         N2 --> P
-        N --> Q{Critical?}
+        N --> Q{"Critical Failure?"}
         N2 --> Q
-        Q -->|Yes| R[Slack Alert + Block]
-        Q -->|No| S[Slack Alert + Proceed]
+        Q -->|Yes| R["Slack Alert + Block Pipeline"]
+        Q -->|No| S["Slack Alert + Proceed"]
     end
 
     A --> B
 ```
+
+![Architecture Diagram](docs/images/architecture_diagram.svg)
 
 ---
 
