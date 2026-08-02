@@ -389,3 +389,71 @@ class TestMultipleIssues:
 
         # Total events should include both
         assert len(result.events) >= 2
+
+
+# ---------------------------------------------------------------------------
+# 7. Type-inference boundary tests
+# ---------------------------------------------------------------------------
+
+
+class TestTypeInferenceBoundary:
+    """
+    Tests type inference threshold behavior at exact boundary values.
+    Verifies that values above threshold pass, and below threshold fail.
+    """
+
+    def test_threshold_boundary_just_below_fails(self):
+        """
+        With 100 rows and a threshold of 0.95 (95%):
+        If 6 rows (6%) are corrupted (94% clean < 95% threshold),
+        it should classify as a BREAKING TYPE_MISMATCH.
+        """
+        df = _make_clean_df(n_rows=100)
+        df["shipping_cost"] = df["shipping_cost"].astype(str)
+        # Corrupt 6 rows out of 100 -> 94% clean ratio
+        for i in range(6):
+            df.loc[i, "shipping_cost"] = "CORRUPTED_TEXT"
+
+        validator = _make_validator(threshold=0.95)
+        result = validator.validate(df)
+
+        assert result.is_valid is False
+        mismatches = [e for e in result.events if e.drift_type == DriftType.TYPE_MISMATCH and e.column_name == "shipping_cost"]
+        assert len(mismatches) == 1
+        assert mismatches[0].severity == Severity.BREAKING
+
+    def test_threshold_boundary_at_or_above_passes(self):
+        """
+        With 100 rows and a threshold of 0.95 (95%):
+        If 4 rows (4%) are corrupted (96% clean >= 95% threshold),
+        it should pass without a TYPE_MISMATCH error.
+        """
+        df = _make_clean_df(n_rows=100)
+        df["shipping_cost"] = df["shipping_cost"].astype(str)
+        # Corrupt 4 rows out of 100 -> 96% clean ratio
+        for i in range(4):
+            df.loc[i, "shipping_cost"] = "CORRUPTED_TEXT"
+
+        validator = _make_validator(threshold=0.95)
+        result = validator.validate(df)
+
+        mismatches = [e for e in result.events if e.drift_type == DriftType.TYPE_MISMATCH and e.column_name == "shipping_cost"]
+        assert len(mismatches) == 0
+
+
+class TestNullEdgeCases:
+    """Edge cases for null checks on required and empty datasets."""
+
+    def test_all_nulls_in_required_column(self):
+        """If an entire required column is null, it produces a BREAKING null violation."""
+        df = _make_clean_df(n_rows=20)
+        df["order_id"] = None
+
+        validator = _make_validator()
+        result = validator.validate(df)
+
+        assert result.is_valid is False
+        null_events = [e for e in result.events if e.drift_type == DriftType.NULL_VIOLATION and e.column_name == "order_id"]
+        assert len(null_events) == 1
+        assert null_events[0].severity == Severity.BREAKING
+
