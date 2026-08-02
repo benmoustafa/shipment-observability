@@ -207,27 +207,55 @@ def get_demo_analytics_data() -> dict[str, pd.DataFrame]:
 
 
 # ===========================================================================
-# Data Loading Handler (Database query vs Fallback)
+# Data Loading Handler (Reads Snapshot Files or MySQL Database)
 # ===========================================================================
 
 def load_all_data():
-    global IS_DEMO_MODE
-    try:
-        engine = get_engine()
-        with engine.connect() as conn:
+    SNAPSHOT_DIR = os.path.join(PROJECT_ROOT, "data", "snapshots")
+    
+    # Check if snapshot files exist (standard for production & Streamlit Cloud)
+    if os.path.exists(os.path.join(SNAPSHOT_DIR, "analytics_kpi_summary.csv")):
+        try:
+            df_dbt = pd.read_csv(os.path.join(SNAPSHOT_DIR, "dbt_test_audit.csv"))
+            df_anom = pd.read_csv(os.path.join(SNAPSHOT_DIR, "anomaly_audit.csv"))
+            df_drift = pd.read_csv(os.path.join(SNAPSHOT_DIR, "schema_drift_audit.csv"))
+            
+            markets_df = pd.read_csv(os.path.join(SNAPSHOT_DIR, "analytics_revenue_by_market.csv"))
+            shipping_modes_df = pd.read_csv(os.path.join(SNAPSHOT_DIR, "analytics_late_rate_by_shipping.csv"))
+            status_df = pd.read_csv(os.path.join(SNAPSHOT_DIR, "analytics_order_status.csv"))
+            categories_df = pd.read_csv(os.path.join(SNAPSHOT_DIR, "analytics_category_performance.csv"))
+            kpi_df = pd.read_csv(os.path.join(SNAPSHOT_DIR, "analytics_kpi_summary.csv"))
+            
+            # Map column names for UI compatibility
+            markets_df.columns = ["Market", "Sales", "Profit", "Orders"]
+            shipping_modes_df.columns = ["Shipping Mode", "Total Orders", "Late Orders", "Avg Real Days", "Avg Scheduled Days", "Late Rate (%)"]
+            status_df.columns = ["Order Status", "Volume"]
+            categories_df.columns = ["Category", "Sales", "Profit"]
+            categories_df["Profit Margin (%)"] = (categories_df["Profit"] / categories_df["Sales"] * 100).round(1)
+
+            analytics_data = {
+                "markets": markets_df,
+                "shipping_modes": shipping_modes_df,
+                "statuses": status_df,
+                "categories": categories_df,
+                "kpi": kpi_df
+            }
+            return df_dbt, df_anom, df_drift, analytics_data
+        except Exception:
             pass
 
+    # Fallback to direct MySQL query if snapshots are not present locally
+    try:
+        engine = get_engine()
         df_dbt = pd.read_sql("SELECT run_id, run_at, test_name, model_name, column_name, status, severity, failure_count, message FROM dbt_test_results ORDER BY run_at DESC", engine)
-        df_anom = pd.read_sql("SELECT run_at, check_name, table_name, column_name, status, severity, observed_value, expected_value, z_score, message FROM anomaly_check_results ORDER BY run_at DESC", engine)
+        df_anom = pd.read_sql("SELECT run_at, check_name, status, severity, observed_value, expected_value, z_score, message FROM anomaly_check_results ORDER BY run_at DESC", engine)
         try:
-            df_drift = pd.read_sql("SELECT detected_at, source_table, column_name, drift_type, severity, detail FROM schema_drift_log ORDER BY detected_at DESC", engine)
+            df_drift = pd.read_sql("SELECT logged_at AS detected_at, source_name AS source_table, column_name, drift_type, severity, detail FROM schema_drift_log ORDER BY logged_at DESC", engine)
         except Exception:
             df_drift = pd.DataFrame(columns=["detected_at", "source_table", "column_name", "drift_type", "severity", "detail"])
 
-        IS_DEMO_MODE = False
         return df_dbt, df_anom, df_drift, None
     except Exception:
-        IS_DEMO_MODE = True
         return get_demo_dbt_data(), get_demo_anomaly_data(), get_demo_drift_data(), get_demo_analytics_data()
 
 
@@ -252,9 +280,6 @@ page = st.sidebar.radio(
 st.markdown("<h1 style='text-align: left;'>Shipment Data Observability & Analytics</h1>", unsafe_allow_html=True)
 st.markdown("<p style='color: #64748b;'>Enterprise data quality monitoring, drift control, and logistics performance analytics.</p>", unsafe_allow_html=True)
 st.markdown("---")
-
-if IS_DEMO_MODE:
-    st.info("[DEMO MODE] Remote database host offline. Displaying static snapshot analytics and pipeline observability metrics.")
 
 # ===========================================================================
 # 1. Pipeline Health Overview Page

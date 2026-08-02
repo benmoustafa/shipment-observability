@@ -198,7 +198,7 @@ def step_branch_and_alert(dry_run: bool = False) -> str:
 
 def step_verify_idempotency(dry_run: bool = False) -> None:
     """Verify pipeline is idempotent: row count matches expected."""
-    _section("Step 6 of 6 — Idempotency verification")
+    _section("Step 6 of 7 — Idempotency verification")
     if dry_run:
         _log("INFO", "DRY RUN — skipping idempotency check")
         return
@@ -218,6 +218,31 @@ def step_verify_idempotency(dry_run: bool = False) -> None:
         _log("WARN",
              f"Row count {count:,} != expected {expected:,}. "
              f"Possible partial load or dataset has changed.")
+
+
+def step_export_and_publish(dry_run: bool = False) -> None:
+    """Export snapshots and push to GitHub to auto-update Streamlit Cloud."""
+    _section("Step 7 of 7 — Export Snapshots & Publish to Live Dashboard")
+    if dry_run:
+        _log("INFO", "DRY RUN — skipping snapshot export & git push")
+        return
+
+    from scripts.export_snapshots import export_snapshots
+    export_snapshots()
+    _log("INFO", "Snapshots exported to data/snapshots/")
+
+    try:
+        subprocess.run(["git", "add", "data/snapshots/"], cwd=str(PROJECT_ROOT), check=True)
+        status = subprocess.run(["git", "status", "--porcelain"], cwd=str(PROJECT_ROOT), capture_output=True, text=True)
+        if "data/snapshots" in status.stdout:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            subprocess.run(["git", "commit", "-m", f"auto: update dashboard data snapshots [{timestamp}]"], cwd=str(PROJECT_ROOT), check=True)
+            subprocess.run(["git", "push", "origin", "main"], cwd=str(PROJECT_ROOT), check=True)
+            _log("INFO", "Git push successful — Streamlit Cloud auto-updating live UI!")
+        else:
+            _log("INFO", "No changes in snapshot data — skipping git commit.")
+    except Exception as exc:
+        _log("WARN", f"Auto-publish to Git encountered a non-fatal notice: {exc}")
 
 
 # ===========================================================================
@@ -243,6 +268,9 @@ def run_pipeline(dry_run: bool = False) -> int:
         step_anomaly_checks(dry_run)
         outcome = step_branch_and_alert(dry_run)
         step_verify_idempotency(dry_run)
+        
+        if outcome != "critical":
+            step_export_and_publish(dry_run)
 
     except Exception as exc:
         _log("ERROR", f"Pipeline exception: {exc}")
