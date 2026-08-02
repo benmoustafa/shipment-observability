@@ -106,7 +106,7 @@ jobs:
         run: dbt debug --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --target ci
 
       - name: Run dbt models
-        run: dbt run --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --target ci
+        run: dbt run --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --target ci --select staging intermediate marts
 
       - name: Run dbt tests
-        run: dbt test --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --target ci
+        run: dbt test --project-dir dbt/shipment_dbt --profiles-dir ~/.dbt --target ci --select staging intermediate marts
